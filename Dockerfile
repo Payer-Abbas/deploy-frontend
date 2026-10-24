@@ -27,8 +27,10 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy the built assets from the builder stage
 COPY --from=builder /app/dist/ /usr/share/nginx/html/
 
-# Optional: expose port 80 (the default for Nginx)
-EXPOSE 80
+# Custom Nginx config (HTTP→HTTPS + /api proxy)
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80 443
 
 # Use the default Nginx startup command
 CMD ["nginx", "-g", "daemon off;"]

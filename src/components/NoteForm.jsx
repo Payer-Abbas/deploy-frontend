@@ -1,7 +1,13 @@
 import { useState } from "react";
 import COLORS from "../constants/colors";
 
-const INITIAL = { title: "", content: "", color: COLORS[0], pinned: false };
+const INITIAL = {
+  title: "",
+  content: "",
+  color: COLORS[0],
+  pinned: false,
+  tags: "",
+};
 
 /**
  * Form for creating a new note.
@@ -11,13 +17,28 @@ export default function NoteForm({ onSave, loading }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title.trim() || !form.content.trim()) return;
-    await onSave(form);
+
+    const tags = form.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    await onSave({
+      title: form.title.trim(),
+      content: form.content.trim(),
+      color: form.color,
+      pinned: form.pinned,
+      tags,
+    });
     setForm(INITIAL);
   };
 
@@ -27,7 +48,9 @@ export default function NoteForm({ onSave, loading }) {
       <form onSubmit={handleSubmit} id="create-note-form">
         <div className="form-grid">
           <div className="input-group">
-            <label className="input-label" htmlFor="note-title">Title</label>
+            <label className="input-label" htmlFor="note-title">
+              Title
+            </label>
             <input
               id="note-title"
               className="input"
@@ -39,10 +62,13 @@ export default function NoteForm({ onSave, loading }) {
               maxLength={100}
               required
             />
+            <span className="char-count">{form.title.length}/100</span>
           </div>
 
           <div className="input-group">
-            <label className="input-label" htmlFor="note-content">Content</label>
+            <label className="input-label" htmlFor="note-content">
+              Content
+            </label>
             <textarea
               id="note-content"
               className="input"
@@ -51,6 +77,21 @@ export default function NoteForm({ onSave, loading }) {
               value={form.content}
               onChange={handleChange}
               required
+            />
+          </div>
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="note-tags">
+              Tags
+            </label>
+            <input
+              id="note-tags"
+              className="input"
+              type="text"
+              name="tags"
+              placeholder="work, ideas, personal (comma-separated)"
+              value={form.tags}
+              onChange={handleChange}
             />
           </div>
 
