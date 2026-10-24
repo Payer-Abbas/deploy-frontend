@@ -1,0 +1,12 @@
+# -------------------------------------------------
+# .dockerignore for the React/Vite front‑end
+# -------------------------------------------------
+.git
+.gitignore
+node_modules/
+npm-debug.log
+.env               # never ship local env files
+dist/              # output from previous builds – rebuilt in the Dockerfile
+Dockerfile
+README.md
+*.md
