@@ -1,12 +1,12 @@
 const COLORS = [
-  "#8b5cf6", // purple
-  "#3b82f6", // blue
-  "#22c55e", // green
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#ec4899", // pink
-  "#14b8a6", // teal
-  "#f97316", // orange
+  "#0f766e", // teal
+  "#0369a1", // sky
+  "#b45309", // amber
+  "#be123c", // rose
+  "#4d7c0f", // lime
+  "#c2410c", // orange
+  "#0e7490", // cyan
+  "#4338ca", // indigo
 ];
 
 export default COLORS;

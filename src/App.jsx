@@ -13,28 +13,31 @@ export default function App() {
   const [search, setSearch] = useState("");
   const { toasts, addToast } = useToast();
 
-  /* ── Fetch all notes ── */
-  const fetchNotes = async () => {
-    try {
-      setLoading((l) => ({ ...l, fetch: true }));
-      const res = await notesApi.getAll();
-      setNotes(res.data);
-    } catch (err) {
-      addToast(err.message || "Failed to load notes", "error");
-    } finally {
-      setLoading((l) => ({ ...l, fetch: false }));
-    }
-  };
+  useEffect(() => {
+    let cancelled = false;
 
-  useEffect(() => { fetchNotes(); }, []);
+    (async () => {
+      try {
+        const res = await notesApi.getAll();
+        if (!cancelled) setNotes(res.data);
+      } catch (err) {
+        if (!cancelled) addToast(err.message || "Failed to load notes", "error");
+      } finally {
+        if (!cancelled) setLoading((l) => ({ ...l, fetch: false }));
+      }
+    })();
 
-  /* ── Create note ── */
+    return () => {
+      cancelled = true;
+    };
+  }, [addToast]);
+
   const handleCreate = async (formData) => {
     try {
       setLoading((l) => ({ ...l, save: true }));
       const res = await notesApi.create(formData);
       setNotes((prev) => [res.data, ...prev]);
-      addToast("Note created! 🎉");
+      addToast("Note created");
     } catch (err) {
       addToast(err.message || "Failed to create note", "error");
     } finally {
@@ -42,14 +45,13 @@ export default function App() {
     }
   };
 
-  /* ── Update note ── */
   const handleUpdate = async (id, formData) => {
     try {
       setLoading((l) => ({ ...l, save: true }));
       const res = await notesApi.update(id, formData);
       setNotes((prev) => prev.map((n) => (n._id === id ? res.data : n)));
       setEditNote(null);
-      addToast("Note updated! ✅");
+      addToast("Note updated");
     } catch (err) {
       addToast(err.message || "Failed to update note", "error");
     } finally {
@@ -57,19 +59,17 @@ export default function App() {
     }
   };
 
-  /* ── Delete note ── */
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this note?")) return;
     try {
       await notesApi.delete(id);
       setNotes((prev) => prev.filter((n) => n._id !== id));
-      addToast("Note deleted 🗑️");
+      addToast("Note deleted");
     } catch (err) {
       addToast(err.message || "Failed to delete note", "error");
     }
   };
 
-  /* ── Filter by search ── */
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return notes;
@@ -82,46 +82,50 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* ── Header ── */}
       <header className="header">
         <div className="container header-inner">
           <div className="logo">
-            <div className="logo-icon">📝</div>
+            <div className="logo-mark" aria-hidden="true">N</div>
             <span>NoteStack</span>
           </div>
-          <span className="note-count-badge">{notes.length} notes</span>
+          <span className="note-count-badge">
+            {notes.length} {notes.length === 1 ? "note" : "notes"}
+          </span>
         </div>
       </header>
 
       <main>
         <div className="container">
-          {/* ── Hero ── */}
           <section className="hero">
-            <h1>Capture your ideas</h1>
-            <p>A full-stack MERN notes app with complete CRUD operations — built for learning deployment.</p>
+            <h1 className="brand-wordmark">
+              Note<span>Stack</span>
+            </h1>
+            <p className="hero-lead">
+              Capture ideas fast — create, search, and organize notes with full CRUD.
+            </p>
           </section>
 
-          {/* ── Create form ── */}
           <NoteForm onSave={handleCreate} loading={loading.save} />
 
-          {/* ── Search ── */}
           <div className="search-bar">
-            <span className="search-icon">🔍</span>
+            <svg className="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+              <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
             <input
               id="search-notes"
               className="input"
               type="search"
-              placeholder="Search notes by title or content…"
+              placeholder="Search by title or content…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               aria-label="Search notes"
             />
           </div>
 
-          {/* ── Notes list ── */}
           <div className="section-header">
             <span className="section-title">
-              {search ? `Results (${filtered.length})` : "All Notes"}
+              {search ? `Results (${filtered.length})` : "All notes"}
             </span>
           </div>
 
@@ -132,9 +136,9 @@ export default function App() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">🗒️</div>
+              <div className="empty-mark" aria-hidden="true">N</div>
               <h3>{search ? "No notes match your search" : "No notes yet"}</h3>
-              <p>{search ? "Try a different keyword" : "Create your first note above!"}</p>
+              <p>{search ? "Try a different keyword" : "Create your first note above"}</p>
             </div>
           ) : (
             <div className="notes-grid">
@@ -151,15 +155,16 @@ export default function App() {
         </div>
       </main>
 
-      {/* ── Edit Modal ── */}
-      <EditModal
-        note={editNote}
-        onSave={handleUpdate}
-        onClose={() => setEditNote(null)}
-        loading={loading.save}
-      />
+      {editNote && (
+        <EditModal
+          key={editNote._id}
+          note={editNote}
+          onSave={handleUpdate}
+          onClose={() => setEditNote(null)}
+          loading={loading.save}
+        />
+      )}
 
-      {/* ── Toasts ── */}
       <ToastContainer toasts={toasts} />
     </div>
   );

@@ -1,19 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import COLORS from "../constants/colors";
 
 /**
  * Edit note modal dialog.
+ * Remount with key={note._id} from the parent so form state resets per note.
  */
 export default function EditModal({ note, onSave, onClose, loading }) {
-  const [form, setForm] = useState({ title: "", content: "", color: COLORS[0], pinned: false });
-
-  useEffect(() => {
-    if (note) {
-      setForm({ title: note.title, content: note.content, color: note.color || COLORS[0], pinned: note.pinned });
-    }
-  }, [note]);
-
-  if (!note) return null;
+  const [form, setForm] = useState({
+    title: note.title,
+    content: note.content,
+    color: note.color || COLORS[0],
+    pinned: note.pinned,
+  });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -27,11 +25,24 @@ export default function EditModal({ note, onSave, onClose, loading }) {
   };
 
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-modal-title"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div className="modal">
         <div className="modal-header">
-          <h2 className="modal-title" id="edit-modal-title">Edit Note</h2>
-          <button id="close-modal-btn" className="btn btn-ghost btn-icon" onClick={onClose} aria-label="Close modal">✕</button>
+          <h2 className="modal-title" id="edit-modal-title">Edit note</h2>
+          <button
+            id="close-modal-btn"
+            className="btn btn-ghost btn-icon"
+            onClick={onClose}
+            aria-label="Close modal"
+          >
+            ✕
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} id="edit-note-form">
@@ -62,9 +73,8 @@ export default function EditModal({ note, onSave, onClose, loading }) {
               />
             </div>
 
-            {/* Color picker */}
             <div className="color-picker-group">
-              <span className="input-label">Accent Color</span>
+              <span className="input-label">Accent</span>
               <div className="color-swatches">
                 {COLORS.map((c) => (
                   <button
@@ -79,29 +89,29 @@ export default function EditModal({ note, onSave, onClose, loading }) {
               </div>
             </div>
 
-            {/* Pin toggle */}
-            <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", color: "var(--text-secondary)", fontSize: "0.88rem" }}>
+            <label className="pin-toggle" htmlFor="edit-pinned">
               <input
                 type="checkbox"
                 name="pinned"
                 id="edit-pinned"
                 checked={form.pinned}
                 onChange={handleChange}
-                style={{ accentColor: "var(--accent)" }}
               />
               Pin note
             </label>
           </div>
 
           <div className="modal-actions">
-            <button type="button" id="cancel-edit-btn" className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            <button type="button" id="cancel-edit-btn" className="btn btn-ghost" onClick={onClose}>
+              Cancel
+            </button>
             <button
               type="submit"
               id="save-edit-btn"
               className="btn btn-primary"
               disabled={loading || !form.title.trim() || !form.content.trim()}
             >
-              {loading ? "Saving…" : "Save Changes"}
+              {loading ? "Saving…" : "Save changes"}
             </button>
           </div>
         </form>
