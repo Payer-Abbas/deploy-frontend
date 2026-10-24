@@ -120,6 +120,26 @@ export default function App() {
     }
   };
 
+  const handleDuplicate = async (note) => {
+    try {
+      const res = await notesApi.create({
+        title: note.title.endsWith("(copy)")
+          ? note.title
+          : `${note.title} (copy)`,
+        content: note.content,
+        color: note.color,
+        pinned: false,
+        archived: false,
+        tags: note.tags || [],
+      });
+      setNotes((prev) => [res.data, ...prev]);
+      setFilter("active");
+      addToast("Note duplicated");
+    } catch (err) {
+      addToast(err.message || "Failed to duplicate note", "error");
+    }
+  };
+
   const allTags = useMemo(() => {
     const set = new Set();
     notes.forEach((n) => (n.tags || []).forEach((t) => set.add(t)));
@@ -327,6 +347,7 @@ export default function App() {
                   onTogglePin={handleTogglePin}
                   onToggleArchive={handleToggleArchive}
                   onCopy={handleCopy}
+                  onDuplicate={handleDuplicate}
                   onTagClick={setActiveTag}
                 />
               ))}
